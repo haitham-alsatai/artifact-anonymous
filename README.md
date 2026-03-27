@@ -30,10 +30,14 @@ scripts/
     run_trace_policy_comparison_experiment.py
     run_trace_good_extensions_experiment.py
     run_trace_when_to_trace_pilot.py
+    stage_a_bootstrap_uncertainty.py        [NEW in v2]
   stage_b/
     run_gaia_integrated_budget_experiment.py
     gaia_weight_sensitivity.py
     gaia_ablation_eval.py
+    gaia_anchor_random_baseline.py          [NEW in v2]
+    gaia_baro_baseline.py                   [NEW in v2]
+    gaia_mrca_baseline.py                   [NEW in v2]
 
 results/
   stage_a/
@@ -41,10 +45,14 @@ results/
     trace_policy_experiment/
     trace_good_extensions_experiment/
     trace_when_pilot_experiment/
+    stage_a_bootstrap_uncertainty/          [NEW in v2]
   stage_b/
     gaia_integrated_experiment/
     gaia_weight_sensitivity/
     gaia_ablation_experiment/
+    gaia_anchor_random_baseline/            [NEW in v2]
+    gaia_baro_baseline/                     [NEW in v2]
+    gaia_mrca_baseline/                     [NEW in v2]
 ```
 
 ## Scripts
@@ -67,6 +75,12 @@ results/
   Runs the RCAEval timing experiment comparing random, early-window, and
   late-window retention.
 
+- `scripts/stage_a/stage_a_bootstrap_uncertainty.py` **[NEW in v2]**
+  Computes nonparametric case-resampling bootstrap confidence intervals over
+  the stored Stage A case-level outputs. Produces the 95% bootstrap intervals
+  for the latency-topk vs. random comparison reported in Section 3.5 and
+  the cross-experiment uncertainty summaries in results/stage_a/stage_a_bootstrap_uncertainty/.
+
 ### Stage B: GAIA (`scripts/stage_b/`)
 
 - `scripts/stage_b/run_gaia_integrated_budget_experiment.py`
@@ -80,6 +94,24 @@ results/
 - `scripts/stage_b/gaia_ablation_eval.py`
   Runs the GAIA ablation follow-up experiment to evaluate reduced or modified
   versions of the integrated scoring and allocation setup.
+
+- `scripts/stage_b/gaia_anchor_random_baseline.py` **[NEW in v2]**
+  Runs the anchored-service random baseline: retains the alerted service first
+  (matching the adaptive policy's service anchor) but selects the remaining
+  services, minutes, and endpoints randomly within budget. This baseline
+  isolates the contribution of where-allocation vs. the adaptive when/what
+  logic (Table 3, Section 4.3 in the paper).
+
+- `scripts/stage_b/gaia_baro_baseline.py` **[NEW in v2]**
+  Implements the adapted BARO-style full-data baseline: applies BARO's robust
+  z-score ranking idea over service-level metric and trace aggregates in
+  matched pre-alert and post-alert windows, then collapses to a service ranking
+  by taking the strongest feature score per service.
+
+- `scripts/stage_b/gaia_mrca_baseline.py` **[NEW in v2]**
+  Implements the adapted MRCA-style full-data baseline: builds multi-signal
+  service anomaly profiles over pre-alert and post-alert windows and applies
+  a simple anomaly-order pruning heuristic to produce the final service ranking.
 
 ## Result Folders
 
@@ -98,6 +130,13 @@ results/
 - `results/stage_a/trace_when_pilot_experiment/`
   Derived outputs for the RCAEval timing-aware retention pilot.
 
+- `results/stage_a/stage_a_bootstrap_uncertainty/` **[NEW in v2]**
+  Bootstrap uncertainty outputs for all four Stage A experiments. Contains
+  per-experiment CSV files with 1000-resample case-level bootstrap distributions
+  for Avg@5 differences. The key interval for the paper's latency-topk vs.
+  random comparison in RE2-TT at 10% is Delta Avg@5 = -0.051, 95% CI
+  [-0.098, -0.018].
+
 ### Stage B: GAIA (`results/stage_b/`)
 
 - `results/stage_b/gaia_integrated_experiment/`
@@ -110,6 +149,20 @@ results/
 
 - `results/stage_b/gaia_ablation_experiment/`
   Derived outputs for the GAIA ablation follow-up experiment.
+
+- `results/stage_b/gaia_anchor_random_baseline/` **[NEW in v2]**
+  Derived outputs for the anchored-service random baseline. Contains
+  case_results.csv, summary_overall.csv, and summary_fault_budget_025.csv.
+  These files provide the per-case Avg@5 rows used in the sign-test comparison
+  against the adaptive policy at 25% and 50%.
+
+- `results/stage_b/gaia_baro_baseline/` **[NEW in v2]**
+  Derived outputs for the adapted BARO-style full-data baseline. Contains
+  case_results.csv, feature_scores.csv, and per-fault/family summary CSVs.
+
+- `results/stage_b/gaia_mrca_baseline/` **[NEW in v2]**
+  Derived outputs for the adapted MRCA-style full-data baseline. Contains
+  case_results.csv, feature_scores.csv, and per-fault/family summary CSVs.
 
 ## Paper Mapping
 
@@ -125,6 +178,10 @@ derived results. This is intended to help reviewers verify paper claims quickly.
 | E5 / RQ3: GAIA integrated experiment | `scripts/stage_b/run_gaia_integrated_budget_experiment.py` | `results/stage_b/gaia_integrated_experiment/` |
 | E6 / RQ4: GAIA ablation | `scripts/stage_b/gaia_ablation_eval.py` | `results/stage_b/gaia_ablation_experiment/` |
 | E6 / RQ4: GAIA weight sensitivity | `scripts/stage_b/gaia_weight_sensitivity.py` | `results/stage_b/gaia_weight_sensitivity/` |
+| Table 3: anchor+random baseline | `scripts/stage_b/gaia_anchor_random_baseline.py` | `results/stage_b/gaia_anchor_random_baseline/` |
+| Table 3: adapted BARO full-data | `scripts/stage_b/gaia_baro_baseline.py` | `results/stage_b/gaia_baro_baseline/` |
+| Table 3: adapted MRCA full-data | `scripts/stage_b/gaia_mrca_baseline.py` | `results/stage_b/gaia_mrca_baseline/` |
+| Section 3.5: bootstrap CI [-0.098,-0.018] | `scripts/stage_a/stage_a_bootstrap_uncertainty.py` | `results/stage_a/stage_a_bootstrap_uncertainty/` |
 
 ## Reproducibility Notes
 
