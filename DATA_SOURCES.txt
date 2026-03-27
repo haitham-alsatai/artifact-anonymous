@@ -1,0 +1,7 @@
+Public dataset sources used by the artifact:
+
+RCAEval
+https://github.com/phamquiluan/RCAEval
+
+GAIA
+https://github.com/CloudWise-OpenSource/GAIA-DataSet
